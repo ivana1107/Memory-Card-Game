@@ -5,7 +5,7 @@ pygame.init()
 pygame.mixer.init()
 
 # Load Background Music
-pygame.mixer.music.load('OneDrive/Documents/Python Assignment/games/star.mp3')
+pygame.mixer.music.load('star.mp3')
 pygame.mixer.music.play(-1)  # Play the music in a loop
 
 # Game Configuration
@@ -36,14 +36,14 @@ exit_button_rect = pygame.Rect((gameWidth // 2 + button_spacing // 2, gameHeight
                                (button_width, button_height))
 
 # Load assets
-gameIcon = pygame.image.load('OneDrive/Documents/Python Assignment/games/bgo.png')
+gameIcon = pygame.image.load('bgo.png')
 pygame.display.set_icon(gameIcon)
-bgImage = pygame.image.load('OneDrive/Documents/Python Assignment/games/bgo.png')  # Background photo
+bgImage = pygame.image.load('bgo.png')  # Background photo
 bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))  # Scale to screen size
 
 # Prepare memory pictures
 memoryPictures = []
-for item in os.listdir('OneDrive/Documents/Python Assignment/games/images/'):
+for item in os.listdir('images'):
     memoryPictures.append(item.split('.')[0])
 memoryPicturesCopy = memoryPictures.copy()
 memoryPictures.extend(memoryPicturesCopy)
@@ -56,7 +56,7 @@ nemPicsRect = []
 hiddenImages = []
 
 for item in memoryPictures:
-    picture = pygame.image.load(f'OneDrive/Documents/Python Assignment/games/images/{item}.png')
+    picture = pygame.image.load(f'images/{item}.png')
     picture = pygame.transform.scale(picture, (picSize, picSize))
     nemPics.append(picture)
     pictureRect = picture.get_rect()
