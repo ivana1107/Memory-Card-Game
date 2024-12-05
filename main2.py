@@ -5,8 +5,8 @@ pygame.init()
 pygame.mixer.init()
 
 # Load Background Music
-pygame.mixer.music.load('star.mp3')
-pygame.mixer.music.play(-1)  # Play the music in a loop
+# pygame.mixer.music.load('star.mp3')
+# pygame.mixer.music.play(-1)  # Play the music in a loop
 
 # Game Configuration
 gameWidth = 840
@@ -36,11 +36,11 @@ exit_button_rect = pygame.Rect((gameWidth // 2 + button_spacing // 2, gameHeight
                                (button_width, button_height))
 
 # Load assets
-gameIcon = pygame.image.load('bgo.png')
+gameIcon = pygame.image.load('backg.png')
 pygame.display.set_icon(gameIcon)
-bgImage = pygame.image.load('bgo.png')  # Background photo
+bgImage = pygame.image.load('backg.png')  # Background photo
 bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))  # Scale to screen size
-congratsBgImage = pygame.image.load('bgo.png')
+congratsBgImage = pygame.image.load('backg.png')
 congratsBgImage = pygame.transform.scale(congratsBgImage, (gameWidth, gameHeight))  # Scale to screen size
 
 # Prepare memory pictures
