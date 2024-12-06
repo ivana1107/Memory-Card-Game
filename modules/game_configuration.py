@@ -1,33 +1,84 @@
+import pygame
+import os
 
-gameWidth, gameHeight = 840, 640
-picSize = 128
-padding = 10
-leftMargin, topMargin = 75, 70
-WHITE, BLACK, GRAY = (255, 255, 255), (0, 0, 0), (200, 200, 200)
-nemPics = []  # List to store card images
-nemPicsRect = []  # List to store card rectangles
-hiddenImages = []  # List to store card visibility status
+class MemoryCardGame:
+    def __init__(self, game_width=840, game_height=640, pic_size=128, padding=10, left_margin=75, top_margin=70):
+        # Initialize Pygame
+        pygame.init()
+        
+        # Game configuration
+        self.game_width = game_width
+        self.game_height = game_height
+        self.pic_size = pic_size
+        self.padding = padding
+        self.left_margin = left_margin
+        self.top_margin = top_margin
+        
+        # Colors
+        self.WHITE, self.BLACK, self.GRAY = (255, 255, 255), (0, 0, 0), (200, 200, 200)
+        
+        # Screen setup
+        self.screen = pygame.display.set_mode((self.game_width, self.game_height))
+        pygame.display.set_caption("Memory Card Game")
+        
+        # Fonts
+        self.font = pygame.font.Font(None, 74)
+        self.button_font = pygame.font.Font(None, 50)
+        
+        # Images
+        self.bg_image = None
+        self.congrats_bg_image = None
+        self.bomb_image = None
+        self.memory_pictures = []
+        self.nem_pics = []
+        self.nem_pics_rect = []
+        self.hidden_images = []
 
+        # Load assets
+        self.load_assets()
 
-screen = pygame.display.set_mode((gameWidth, gameHeight))
-pygame.display.set_caption("Memory Card Game")
-font = pygame.font.Font(None, 74)
-button_font = pygame.font.Font(None, 50)
+    def load_assets(self):
+        """Load all required images and assets."""
+        # Game icon
+        game_icon = pygame.image.load('C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/backg.png')
+        pygame.display.set_icon(game_icon)
+        
+        # Background images
+        self.bg_image = pygame.image.load("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/bgo.png")
+        self.bg_image = pygame.transform.scale(self.bg_image, (self.game_width, self.game_height))
+        
+        self.congrats_bg_image = pygame.image.load('C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/backg.png')
+        self.congrats_bg_image = pygame.transform.scale(self.congrats_bg_image, (self.game_width, self.game_height))
+        
+        # Bomb image
+        self.bomb_image = pygame.image.load("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/images/bomb.png")
+        self.bomb_image = pygame.transform.scale(self.bomb_image, (self.pic_size, self.pic_size))
+        
+        # Load memory pictures
+        try:
+            self.memory_pictures = [os.path.splitext(file)[0] for file in os.listdir("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/images") if file.endswith(('.png', '.jpg', '.jpeg'))]
+            self.memory_pictures = self.memory_pictures[:13]  # Limit to 13 pairs for consistency
+        except FileNotFoundError as e:
+            print(f"Error loading memory pictures: {e}")
+        
+    def draw_background(self):
+        """Draw the background image."""
+        self.screen.blit(self.bg_image, (0, 0))
 
-# Load assets
-gameIcon = pygame.image.load('backg.png')
-pygame.display.set_icon(gameIcon)
-bgImage = pygame.image.load('backg.png')  # Background photo
-bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))  # Scale to screen size
-congratsBgImage = pygame.image.load('backg.png')
-congratsBgImage = pygame.transform.scale(congratsBgImage, (gameWidth, gameHeight))  # Scale to screen size
+    def run(self):
+        """Main game loop."""
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            
+            self.draw_background()
+            pygame.display.flip()
+        
+        pygame.quit()
 
-bgImage = pygame.image.load("bgo.png")
-bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))
-bombImage = pygame.image.load("images/bomb.png")
-bombImage = pygame.transform.scale(bombImage, (picSize, picSize))
-
-
-# Load memory pictures
-memoryPictures = [os.path.splitext(file)[0] for file in os.listdir("images")]
-memoryPictures = memoryPictures[:13]  # Limit to 13 pairs for consistency
+# Initialize and run the game
+if __name__ == "__main__":
+    game = MemoryCardGame()
+    game.run()
