@@ -1,150 +1,112 @@
 import pygame
 import os
 import random
+import sys
+from modules.game_configuration import MemoryCardGame
+from modules.timer_countdown import TimerCountdown
 
 # Initialize Pygame and Mixer
 pygame.init()
 pygame.mixer.init()
 
 # Load Background Music
-# pygame.mixer.music.load('star.mp3')
-# pygame.mixer.music.play(-1)  # Play the music in a loop
-
 pygame.mixer.music.load('star.mp3')
 pygame.mixer.music.play(-1)  # Play music in a loop
 
-# Game Configuration
-gameWidth, gameHeight = 840, 640
-picSize = 128
-padding = 10
-leftMargin, topMargin = 75, 70
-WHITE, BLACK, GRAY = (255, 255, 255), (0, 0, 0), (200, 200, 200)
-nemPics = []  # List to store card images
-nemPicsRect = []  # List to store card rectangles
-hiddenImages = []  # List to store card visibility status
-
-
-screen = pygame.display.set_mode((gameWidth, gameHeight))
-pygame.display.set_caption("Memory Card Game")
-font = pygame.font.Font(None, 74)
-button_font = pygame.font.Font(None, 50)
-
-# Load assets
-gameIcon = pygame.image.load('backg.png')
-pygame.display.set_icon(gameIcon)
-bgImage = pygame.image.load('backg.png')  # Background photo
-bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))  # Scale to screen size
-congratsBgImage = pygame.image.load('backg.png')
-congratsBgImage = pygame.transform.scale(congratsBgImage, (gameWidth, gameHeight))  # Scale to screen size
-
-bgImage = pygame.image.load("bgo.png")
-bgImage = pygame.transform.scale(bgImage, (gameWidth, gameHeight))
-bombImage = pygame.image.load("images/bomb.png")
-bombImage = pygame.transform.scale(bombImage, (picSize, picSize))
-
-
-# Load memory pictures
-memoryPictures = [os.path.splitext(file)[0] for file in os.listdir("images")]
-memoryPictures = memoryPictures[:13]  # Limit to 13 pairs for consistency
-
+# Initialize Game Configuration
+game = MemoryCardGame()
 
 def setup_game(level):
-    global memoryPictures, nemPics, nemPicsRect, hiddenImages
-    memoryPictures = []
-    for item in os.listdir('images'):
-        memoryPictures.append(item.split('.')[0])
-
     # Define grid and bomb configuration
     rows, cols, num_bombs = {
-        "easy": (3, 3, 1),  # 3x3 grid with 1 bomb
+        "easy": (3, 3, 1),    # 3x3 grid with 1 bomb
         "medium": (4, 4, 2),  # 4x4 grid with 2 bombs
-        "hard": (5, 5, 3),  # 5x5 grid with 3 bombs
+        "hard": (5, 5, 3),    # 5x5 grid with 3 bombs
     }[level]
 
     num_pairs = (rows * cols - num_bombs) // 2
 
     # Ensure there are enough unique images for the selected level
-    if num_pairs > len(memoryPictures):
+    if num_pairs > len(game.memory_pictures):
         raise ValueError("Not enough unique images for the selected level.")
 
     # Dynamic card size and padding calculation
-    global picSize, padding, leftMargin, topMargin
-    grid_width = gameWidth - 2 * leftMargin
-    grid_height = gameHeight - 2 * topMargin
-    picSize = min(grid_width // cols, grid_height // rows) - 10  # Adjust with padding
-    padding = 10
-    leftMargin = (gameWidth - (picSize + padding) * cols + padding) // 2
-    topMargin = (gameHeight - (picSize + padding) * rows + padding) // 2
+    grid_width = game.game_width - 2 * game.left_margin
+    grid_height = game.game_height - 2 * game.top_margin
+    game.pic_size = min(grid_width // cols, grid_height // rows) - 10  # Adjust with padding
+    game.padding = 10
+    game.left_margin = (game.game_width - (game.pic_size + game.padding) * cols + game.padding) // 2
+    game.top_margin = (game.game_height - (game.pic_size + game.padding) * rows + game.padding) // 2
 
     # Select images for the game
-    selected_images = random.sample(memoryPictures, num_pairs)
+    selected_images = random.sample(game.memory_pictures, num_pairs)
     selected_images *= 2  # Duplicate to make pairs
     selected_images += ["bomb"] * num_bombs
     random.shuffle(selected_images)
 
     # Reset global variables
-    nemPics.clear()
-    nemPicsRect.clear()
-    hiddenImages.clear()
+    game.nem_pics.clear()
+    game.nem_pics_rect.clear()
+    game.hidden_images.clear()
 
     # Load images and set positions
     for item in selected_images:
         picture = pygame.image.load(f'images/{item}.png')
-        picture = pygame.transform.scale(picture, (picSize, picSize))
-        nemPics.append(picture)
+        picture = pygame.transform.scale(picture, (game.pic_size, game.pic_size))
+        game.nem_pics.append(picture)
         pictureRect = picture.get_rect()
-        nemPicsRect.append(pictureRect)
+        game.nem_pics_rect.append(pictureRect)
 
-    for i in range(len(nemPicsRect)):
-        nemPicsRect[i][0] = leftMargin + ((picSize + padding) * (i % cols))
-        nemPicsRect[i][1] = topMargin + ((picSize + padding) * (i // cols))
-        hiddenImages.append(False)
+    for i, rect in enumerate (game.nem_pics_rect):
+        rect.x = game.left_margin + ((game.pic_size + game.padding) * (i % cols))
+        rect.y = game.top_margin + ((game.pic_size + game.padding) * (i // cols))
+        game.hidden_images.append(False)
 
-    return nemPics, nemPicsRect, selected_images, hiddenImages, rows, cols, num_bombs
+    return rows, cols, num_bombs, selected_images
 
-def shuffle_unmatched_cards(memoryPictures, hiddenImages, nemPics, nemPicsRect, rows, cols):
-    # Get the indices of all unmatched (hidden) and non-bomb cards
-    unmatched_indices = [
-        i for i, (pic, hidden) in enumerate(zip(memoryPictures, hiddenImages)) 
-        if not hidden and pic != "bomb"  # Only shuffle cards that are not bombs
-    ]
-    unmatched_pictures = [memoryPictures[idx] for idx in unmatched_indices]
-    random.shuffle(unmatched_pictures)  # Shuffle the unmatched cards
+# def shuffle_unmatched_cards(memoryPictures, hiddenImages, nemPics, nemPicsRect, rows, cols):
+#     # Get the indices of all unmatched (hidden) and non-bomb cards
+#     unmatched_indices = [
+#         i for i, (pic, hidden) in enumerate(zip(memoryPictures, hiddenImages)) 
+#         if not hidden and pic != "bomb"  # Only shuffle cards that are not bombs
+#     ]
+#     unmatched_pictures = [memoryPictures[idx] for idx in unmatched_indices]
+#     random.shuffle(unmatched_pictures)  # Shuffle the unmatched cards
 
-    # Update the memoryPictures array with the shuffled unmatched cards
-    for i, idx in enumerate(unmatched_indices):
-        memoryPictures[idx] = unmatched_pictures[i]
-        if unmatched_pictures[i] != "bomb":
-            nemPics[idx] = pygame.image.load(f"images/{unmatched_pictures[i]}.png")
-            nemPics[idx] = pygame.transform.scale(nemPics[idx], (picSize, picSize))
+#     # Update the memoryPictures array with the shuffled unmatched cards
+#     for i, idx in enumerate(unmatched_indices):
+#         memoryPictures[idx] = unmatched_pictures[i]
+#         if unmatched_pictures[i] != "bomb":
+#             nemPics[idx] = pygame.image.load(f"images/{unmatched_pictures[i]}.png")
+#             nemPics[idx] = pygame.transform.scale(nemPics[idx], (game.pic_size, game.pic_size))
 
-    # Update the card positions in nemPicsRect (no need to shuffle positions)
-    for idx, rect in enumerate(nemPicsRect):
-        rect.update(
-            leftMargin + (idx % cols) * (picSize + padding),
-            topMargin + (idx // cols) * (picSize + padding),
-            picSize, picSize,
-        )
+#     # Update the card positions in nemPicsRect (no need to shuffle positions)
+#     for idx, rect in enumerate(nemPicsRect):
+#         rect.update(
+#             leftMargin + (idx % cols) * (picSize + padding),
+#             topMargin + (idx // cols) * (picSize + padding),
+#             picSize, picSize,
+#         )
 
 
 def display_menu():
     menu_running = True
     while menu_running:
-        screen.blit(bgImage, (0, 0))
-        title_text = font.render("Memory Card Game", True, WHITE)
-        screen.blit(title_text, (gameWidth // 2 - title_text.get_width() // 2, 100))
+        game.draw_background()
+        title_text = game.font.render("Memory Card Game", True, game.WHITE)
+        game.screen.blit(title_text, (game.game_width // 2 - title_text.get_width() // 2, 100))
 
         button_texts = ["Easy", "Medium", "Hard", "Exit"]
         buttons = []
 
         for i, text in enumerate(button_texts):
             button_rect = pygame.Rect(
-                gameWidth // 2 - 100, 200 + i * 100, 200, 80
+                game.game_width // 2 - 100, 200 + i * 100, 200, 80
             )
             buttons.append(button_rect)
-            pygame.draw.rect(screen, GRAY, button_rect)
-            text_render = button_font.render(text, True, BLACK)
-            screen.blit(
+            pygame.draw.rect(game.screen, game.GRAY, button_rect)
+            text_render = game.button_font.render(text, True, game.BLACK)
+            game.screen.blit(
                 text_render,
                 (
                     button_rect.x + (button_rect.width - text_render.get_width()) // 2,
@@ -168,81 +130,75 @@ def display_menu():
 
 
 def game_loop(level):
-    nemPics, nemPicsRect, memoryPictures, hiddenImages, rows, cols, num_bombs = setup_game(level)
+    rows, cols, num_bombs, memory_pictures = setup_game(level)
     selection1, selection2 = None, None
     flip_back_time = None
-    start_time = pygame.time.get_ticks()
     matched_cards = set()
 
-    gameLoop = True
     clock = pygame.time.Clock()
+    timer = TimerCountdown(game.screen, game.font, level)
 
-    while gameLoop:
+    while True:
         clock.tick(30)
-        elapsed_time = (pygame.time.get_ticks() - start_time) / 1000
+        timer.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                gameLoop = False
+                pygame.quit()
+                sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for idx, rect in enumerate(nemPicsRect):
-                    if hiddenImages[idx] or idx in matched_cards:
+                for idx, rect in enumerate(game.nem_pics_rect):
+                    if game.hidden_images[idx] or idx in matched_cards:
                         continue
                     if rect.collidepoint(event.pos):
-                        if memoryPictures[idx] == "bomb":
+                        if memory_pictures[idx] == "bomb":
                             # Show bomb and shuffle unmatched cards
-                            hiddenImages[idx] = True
-                            shuffle_unmatched_cards(memoryPictures, hiddenImages, nemPics, nemPicsRect, rows, cols)
+                            game.hidden_images[idx] = True
+                            #shuffle_unmatched_cards(memoryPictures, hiddenImages, nemPics, nemPicsRect, rows, cols)
                         elif selection1 is None:
                             selection1 = idx
-                            hiddenImages[selection1] = True
+                            game.hidden_images[selection1] = True
                         elif selection2 is None and idx != selection1:
                             selection2 = idx
-                            hiddenImages[selection2] = True
+                            game.hidden_images[selection2] = True
                             flip_back_time = pygame.time.get_ticks() + 1000
 
         if flip_back_time and pygame.time.get_ticks() >= flip_back_time:
-            if memoryPictures[selection1] != memoryPictures[selection2]:
-                hiddenImages[selection1] = False
-                hiddenImages[selection2] = False
+            if memory_pictures[selection1] != memory_pictures[selection2]:
+                game.hidden_images[selection1] = False
+                game.hidden_images[selection2] = False
             else:
                 matched_cards.update([selection1, selection2])
             selection1, selection2, flip_back_time = None, None, None
 
-        screen.blit(bgImage, (0, 0))  # Main game background
+        game.draw_background() # Main game background
 
-        for idx in range(len(memoryPictures)):
-            if hiddenImages[idx] or idx in matched_cards:
-                screen.blit(nemPics[idx], nemPicsRect[idx])
+        for idx, rect in enumerate(game.nem_pics_rect):
+            if game.hidden_images[idx] or idx in matched_cards:
+                game.screen.blit(game.nem_pics[idx], game.nem_pics_rect[idx])
             else:
-                pygame.draw.rect(screen, GRAY, nemPicsRect[idx], border_radius=15)
+                pygame.draw.rect(game.screen, game.GRAY, rect, border_radius=15)
+        
+        timer.display()
 
-        timer_text = font.render(f"Time: {elapsed_time:.2f}s", True, WHITE)
-        screen.blit(timer_text, (10, 10))
-
-        if len(matched_cards) == len(memoryPictures) - num_bombs:
+        if len(matched_cards) == len(memory_pictures) - num_bombs:
             # Display the win screen with background
-            win_screen = True
-            while win_screen:
-                screen.blit(bgImage, (0, 0))  # Display background in win screen
-                win_text = font.render("Congratulations!", True, BLACK)
-                screen.blit(win_text, (gameWidth // 2 - win_text.get_width() // 2, gameHeight // 2 - 50))
-                time_text = font.render(f"Time: {elapsed_time:.2f}s", True, BLACK)
-                screen.blit(time_text, (gameWidth // 2 - time_text.get_width() // 2, gameHeight // 2 + 50))
-                pygame.display.update()
+            win_text = game.font.render("Congratulations!", True, game.BLACK)
+            game.screen.blit(win_text, (game.game_width // 2 - win_text.get_width() // 2, game.game_height // 2 - 50))
+            pygame.display.update()
+            pygame.time.wait(3000)
+            break
 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        exit()
-                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        win_screen = False
-
-            gameLoop = False
+        if timer.is_time_up():
+            lose_text = game.font.render("Time's Up! You Lose!", True, game.WHITE)
+            game.screen.blit(lose_text, (game.game_width // 2 - lose_text.get_width() // 2, game.game_height // 2 - 50))
+            pygame.display.update()
+            pygame.time.wait(3000)
+            break
 
         pygame.display.update()
 
 
 while True:
-    level = display_menu()
-    game_loop(level)
+    selected_level = display_menu()
+    game_loop(selected_level)

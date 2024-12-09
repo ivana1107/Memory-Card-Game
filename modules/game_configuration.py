@@ -2,7 +2,7 @@ import pygame
 import os
 
 class MemoryCardGame:
-    def __init__(self, game_width=840, game_height=640, pic_size=128, padding=10, left_margin=75, top_margin=70):
+    def __init__(self, game_width=1200, game_height=760, pic_size=128, padding=10, left_margin=75, top_margin=70):
         # Initialize Pygame
         pygame.init()
         
@@ -40,23 +40,23 @@ class MemoryCardGame:
     def load_assets(self):
         """Load all required images and assets."""
         # Game icon
-        game_icon = pygame.image.load('C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/backg.png')
+        game_icon = pygame.image.load('backg.png')
         pygame.display.set_icon(game_icon)
         
         # Background images
-        self.bg_image = pygame.image.load("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/bgo.png")
+        self.bg_image = pygame.image.load('backg.png')
         self.bg_image = pygame.transform.scale(self.bg_image, (self.game_width, self.game_height))
         
-        self.congrats_bg_image = pygame.image.load('C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/backg.png')
+        self.congrats_bg_image = pygame.image.load('backg.png')
         self.congrats_bg_image = pygame.transform.scale(self.congrats_bg_image, (self.game_width, self.game_height))
         
         # Bomb image
-        self.bomb_image = pygame.image.load("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/images/bomb.png")
+        self.bomb_image = pygame.image.load(os.path.join('images', 'bomb.png'))
         self.bomb_image = pygame.transform.scale(self.bomb_image, (self.pic_size, self.pic_size))
         
         # Load memory pictures
         try:
-            self.memory_pictures = [os.path.splitext(file)[0] for file in os.listdir("C:/Users/ryaen/OneDrive/Documents/games/Memory-Card-Game/images") if file.endswith(('.png', '.jpg', '.jpeg'))]
+            self.memory_pictures = [os.path.splitext(file)[0] for file in os.listdir('images') if file.endswith(('.png', '.jpg', '.jpeg'))]
             self.memory_pictures = self.memory_pictures[:13]  # Limit to 13 pairs for consistency
         except FileNotFoundError as e:
             print(f"Error loading memory pictures: {e}")
