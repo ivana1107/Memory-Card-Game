@@ -4,6 +4,7 @@ import random
 import sys
 from modules.game_configuration import MemoryCardGame
 from modules.timer_countdown import TimerCountdown
+from modules.shuffle_bomb import Shuffle
 
 # Initialize Pygame and Mixer
 pygame.init()
@@ -64,30 +65,6 @@ def setup_game(level):
 
     return rows, cols, num_bombs, selected_images
 
-# def shuffle_unmatched_cards(memoryPictures, hiddenImages, nemPics, nemPicsRect, rows, cols):
-#     # Get the indices of all unmatched (hidden) and non-bomb cards
-#     unmatched_indices = [
-#         i for i, (pic, hidden) in enumerate(zip(memoryPictures, hiddenImages)) 
-#         if not hidden and pic != "bomb"  # Only shuffle cards that are not bombs
-#     ]
-#     unmatched_pictures = [memoryPictures[idx] for idx in unmatched_indices]
-#     random.shuffle(unmatched_pictures)  # Shuffle the unmatched cards
-
-#     # Update the memoryPictures array with the shuffled unmatched cards
-#     for i, idx in enumerate(unmatched_indices):
-#         memoryPictures[idx] = unmatched_pictures[i]
-#         if unmatched_pictures[i] != "bomb":
-#             nemPics[idx] = pygame.image.load(f"images/{unmatched_pictures[i]}.png")
-#             nemPics[idx] = pygame.transform.scale(nemPics[idx], (game.pic_size, game.pic_size))
-
-#     # Update the card positions in nemPicsRect (no need to shuffle positions)
-#     for idx, rect in enumerate(nemPicsRect):
-#         rect.update(
-#             leftMargin + (idx % cols) * (picSize + padding),
-#             topMargin + (idx // cols) * (picSize + padding),
-#             picSize, picSize,
-#         )
-
 
 def display_menu():
     menu_running = True
@@ -138,6 +115,19 @@ def game_loop(level):
     clock = pygame.time.Clock()
     timer = TimerCountdown(game.screen, game.font, level)
 
+    shuffle_bomb = Shuffle(
+        memory_pictures,
+        game.hidden_images,
+        game.nem_pics,
+        game.nem_pics_rect,
+        rows,
+        cols,
+        game.left_margin,
+        game.top_margin,
+        game.pic_size,
+        game.padding,
+    )
+    
     while True:
         clock.tick(30)
         timer.update()
