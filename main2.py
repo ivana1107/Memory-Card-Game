@@ -89,7 +89,7 @@ def setup_game(level):
 #         )
 
 
-def display_menu():
+###def display_menu():
     menu_running = True
     while menu_running:
         game.draw_background()
