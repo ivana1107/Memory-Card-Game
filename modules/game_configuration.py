@@ -19,7 +19,7 @@ class MemoryCardGame:
         
         # Screen setup
         self.screen = pygame.display.set_mode((self.game_width, self.game_height))
-        pygame.display.set_caption("Memory Card Game")
+        pygame.display.set_caption("Flip and Find")
         
         # Fonts
         self.font = pygame.font.Font(None, 74)
@@ -29,6 +29,7 @@ class MemoryCardGame:
         self.bg_image = None
         self.congrats_bg_image = None
         self.bomb_image = None
+        self.cards = []
         self.memory_pictures = []
         self.nem_pics = []
         self.nem_pics_rect = []
