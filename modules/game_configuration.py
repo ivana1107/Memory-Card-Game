@@ -21,7 +21,6 @@ class MemoryCardGame:
 
         # Screen setup
         self.screen = pygame.display.set_mode((self.game_width, self.game_height))
-        pygame.display.set_caption("Memory Card Game")
 
         # Load assets
         self.load_assets()
