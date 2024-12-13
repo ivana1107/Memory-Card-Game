@@ -1,3 +1,4 @@
+# kyknya ini gaperlu, semua isi level udh kupindah ke game configuration biar ga muter importnya
 import pygame
 import os
 import random
